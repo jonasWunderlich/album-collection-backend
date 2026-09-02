@@ -30,11 +30,11 @@ public class Album {
     public Boolean owned;
     public Boolean tino;
     public Boolean wire;
+    public Boolean wishlist;
     public Boolean hidden;
     public String videoUrl;
     public String wikiUrl;
     public String discogsUrl;
     public String bandcampUrl;
     public String rymUrl;
-    public Double mbRating;
 }

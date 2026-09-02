@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -18,17 +20,18 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Loads albums.json on startup and provides filtering, sorting and pagination.
+ ** Loads library.json on startup and provides filtering, sorting and pagination.
  */
 @ApplicationScoped
 public class AlbumService {
-
+    
     private final List<Album> albums;
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Inject
     public AlbumService(
             ObjectMapper objectMapper,
-            @ConfigProperty(name = "albums.json.path") Optional<String> externalPath) {
+            @ConfigProperty(name = "library.json.path") Optional<String> externalPath) {
 
         try {
             List<Album> loaded;
@@ -37,17 +40,17 @@ public class AlbumService {
                 loaded = objectMapper.readValue(new File(externalPath.get()), new TypeReference<>() {});
             } else {
                 // Default: load from classpath resource
-                try (InputStream is = getClass().getClassLoader().getResourceAsStream("albums.json")) {
+                try (InputStream is = getClass().getClassLoader().getResourceAsStream("library.json")) {
                     if (is == null) {
-                        throw new IllegalStateException("albums.json not found on classpath. " +
-                                "Set 'albums.json.path' in application.properties to point to the file.");
+                        throw new IllegalStateException("library.json not found on classpath. " +
+                                "Set 'library.json.path' in application.properties to point to the file.");
                     }
                     loaded = objectMapper.readValue(is, new TypeReference<>() {});
                 }
             }
             this.albums = loaded;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load albums.json", e);
+            throw new RuntimeException("Failed to load library.json", e);
         }
     }
 
@@ -81,8 +84,6 @@ public class AlbumService {
         if (p.publisher != null)
             stream = stream.filter(a -> a.publisher != null &&
                     a.publisher.stream().anyMatch(v -> containsIgnoreCase(v, p.publisher)));
-        if (p.videoUrl != null)
-            stream = stream.filter(a -> containsIgnoreCase(a.videoUrl, p.videoUrl));
 
         // ---- Boolean filters ----
         if (p.reissue != null)
@@ -97,6 +98,8 @@ public class AlbumService {
             stream = stream.filter(a -> p.tino.equals(a.tino));
         if (p.wire != null)
             stream = stream.filter(a -> p.wire.equals(a.wire));
+        if (p.wishlist != null)
+            stream = stream.filter(a -> p.wishlist.equals(a.wishlist));
 
         // ---- Year filter ----
         if (p.releaseYear != null)
@@ -116,12 +119,12 @@ public class AlbumService {
         if (p.addedDateFrom != null) {
             LocalDate from = LocalDate.parse(p.addedDateFrom);
             stream = stream.filter(a -> a.addedDate != null &&
-                    !LocalDate.parse(a.addedDate).isBefore(from));
+                    !LocalDateTime.parse(a.addedDate, TIMESTAMP_FORMATTER).toLocalDate().isBefore(from));
         }
         if (p.addedDateTo != null) {
             LocalDate to = LocalDate.parse(p.addedDateTo);
             stream = stream.filter(a -> a.addedDate != null &&
-                    !LocalDate.parse(a.addedDate).isAfter(to));
+                    !LocalDateTime.parse(a.addedDate, TIMESTAMP_FORMATTER).toLocalDate().isAfter(to));
         }
 
         // ---- Rating filters (exact value takes precedence over range) ----
@@ -132,15 +135,6 @@ public class AlbumService {
                 stream = stream.filter(a -> a.rating != null && a.rating >= p.ratingMin);
             if (p.ratingMax != null)
                 stream = stream.filter(a -> a.rating != null && a.rating <= p.ratingMax);
-        }
-
-        if (p.mbRating != null) {
-            stream = stream.filter(a -> p.mbRating.equals(a.mbRating));
-        } else {
-            if (p.mbRatingMin != null)
-                stream = stream.filter(a -> a.mbRating != null && a.mbRating >= p.mbRatingMin);
-            if (p.mbRatingMax != null)
-                stream = stream.filter(a -> a.mbRating != null && a.mbRating <= p.mbRatingMax);
         }
 
         // ---- Sorting ----
@@ -185,7 +179,6 @@ public class AlbumService {
             case "country"      -> Comparator.comparing(a -> nullSafe(a.country));
             case "city"         -> Comparator.comparing(a -> nullSafe(a.city));
             case "rating"       -> Comparator.comparing(a -> nullSafeDouble(a.rating));
-            case "mbRating"     -> Comparator.comparing(a -> nullSafeDouble(a.mbRating));
             default             -> null;
         };
     }

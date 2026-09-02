@@ -33,6 +33,7 @@ public class AlbumFilterParams {
     public Boolean owned;
     public Boolean tino;
     public Boolean wire;
+    public Boolean wishlist;
 
     // ---- Year filter ----
     public Integer releaseYear;
@@ -47,8 +48,4 @@ public class AlbumFilterParams {
     public Double rating;
     public Double ratingMin;
     public Double ratingMax;
-
-    public Double mbRating;
-    public Double mbRatingMin;
-    public Double mbRatingMax;
 }

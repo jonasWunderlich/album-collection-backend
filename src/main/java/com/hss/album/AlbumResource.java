@@ -35,7 +35,7 @@ public class AlbumResource {
             @QueryParam("size") @DefaultValue("20") int size,
 
             // ---- Sorting ----
-            @Parameter(description = "Sort field: artist | albumArtist | title | releaseYear | releaseDate | addedDate | country | city | rating | mbRating")
+            @Parameter(description = "Sort field: artist | albumArtist | title | releaseYear | releaseDate | addedDate | country | city | rating")
             @QueryParam("sortBy") String sortBy,
 
             @Parameter(description = "Sort direction: asc | desc (default: asc)")
@@ -88,6 +88,9 @@ public class AlbumResource {
             @Parameter(description = "Filter by wire flag")
             @QueryParam("wire") Boolean wire,
 
+            @Parameter(description = "Filter by wishlist flag")
+            @QueryParam("wishlist") Boolean wishlist,
+
             // ---- Year filter ----
             @Parameter(description = "Filter by exact release year")
             @QueryParam("releaseYear") Integer releaseYear,
@@ -113,16 +116,7 @@ public class AlbumResource {
             @QueryParam("ratingMin") Double ratingMin,
 
             @Parameter(description = "Filter by maximum rating (inclusive)")
-            @QueryParam("ratingMax") Double ratingMax,
-
-            @Parameter(description = "Filter by exact mbRating (takes precedence over mbRatingMin/Max)")
-            @QueryParam("mbRating") Double mbRating,
-
-            @Parameter(description = "Filter by minimum mbRating (inclusive)")
-            @QueryParam("mbRatingMin") Double mbRatingMin,
-
-            @Parameter(description = "Filter by maximum mbRating (inclusive)")
-            @QueryParam("mbRatingMax") Double mbRatingMax
+            @QueryParam("ratingMax") Double ratingMax
     ) {
         AlbumFilterParams params = new AlbumFilterParams();
         params.page = page;
@@ -144,6 +138,7 @@ public class AlbumResource {
         params.owned = owned;
         params.tino = tino;
         params.wire = wire;
+        params.wishlist = wishlist;
         params.releaseYear = releaseYear;
         params.releaseDateFrom = releaseDateFrom;
         params.releaseDateTo = releaseDateTo;
@@ -152,9 +147,6 @@ public class AlbumResource {
         params.rating = rating;
         params.ratingMin = ratingMin;
         params.ratingMax = ratingMax;
-        params.mbRating = mbRating;
-        params.mbRatingMin = mbRatingMin;
-        params.mbRatingMax = mbRatingMax;
 
         return albumService.getAlbums(params);
     }
