@@ -1,0 +1,197 @@
+package com.hss.album;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hss.common.PagedResponse;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+/**
+ * Loads albums.json on startup and provides filtering, sorting and pagination.
+ */
+@ApplicationScoped
+public class AlbumService {
+
+    private final List<Album> albums;
+
+    @Inject
+    public AlbumService(
+            ObjectMapper objectMapper,
+            @ConfigProperty(name = "albums.json.path") Optional<String> externalPath) {
+
+        try {
+            List<Album> loaded;
+            if (externalPath.isPresent() && !externalPath.get().isBlank()) {
+                // Allow overriding via config property (useful for integration tests / different envs)
+                loaded = objectMapper.readValue(new File(externalPath.get()), new TypeReference<>() {});
+            } else {
+                // Default: load from classpath resource
+                try (InputStream is = getClass().getClassLoader().getResourceAsStream("albums.json")) {
+                    if (is == null) {
+                        throw new IllegalStateException("albums.json not found on classpath. " +
+                                "Set 'albums.json.path' in application.properties to point to the file.");
+                    }
+                    loaded = objectMapper.readValue(is, new TypeReference<>() {});
+                }
+            }
+            this.albums = loaded;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load albums.json", e);
+        }
+    }
+
+    /**
+     * Applies all filters, sorts, and paginates the album list.
+     */
+    public PagedResponse<Album> getAlbums(AlbumFilterParams p) {
+
+        Stream<Album> stream = albums.stream()
+                // --- Always hide hidden albums ---
+                .filter(a -> !Boolean.TRUE.equals(a.hidden));
+
+        // ---- String filters (contains, case-insensitive) ----
+        if (p.artist != null)
+            stream = stream.filter(a -> containsIgnoreCase(a.artist, p.artist));
+        if (p.albumArtist != null)
+            stream = stream.filter(a -> a.albumArtist != null &&
+                    a.albumArtist.stream().anyMatch(v -> containsIgnoreCase(v, p.albumArtist)));
+        if (p.title != null)
+            stream = stream.filter(a -> containsIgnoreCase(a.title, p.title));
+        if (p.country != null)
+            stream = stream.filter(a -> containsIgnoreCase(a.country, p.country));
+        if (p.city != null)
+            stream = stream.filter(a -> containsIgnoreCase(a.city, p.city));
+        if (p.genre != null)
+            stream = stream.filter(a -> a.genre != null &&
+                    a.genre.stream().anyMatch(v -> containsIgnoreCase(v, p.genre)));
+        if (p.style != null)
+            stream = stream.filter(a -> a.style != null &&
+                    a.style.stream().anyMatch(v -> containsIgnoreCase(v, p.style)));
+        if (p.publisher != null)
+            stream = stream.filter(a -> a.publisher != null &&
+                    a.publisher.stream().anyMatch(v -> containsIgnoreCase(v, p.publisher)));
+        if (p.videoUrl != null)
+            stream = stream.filter(a -> containsIgnoreCase(a.videoUrl, p.videoUrl));
+
+        // ---- Boolean filters ----
+        if (p.reissue != null)
+            stream = stream.filter(a -> p.reissue.equals(a.reissue));
+        if (p.fan != null)
+            stream = stream.filter(a -> p.fan.equals(a.fan));
+        if (p.favorite != null)
+            stream = stream.filter(a -> p.favorite.equals(a.favorite));
+        if (p.owned != null)
+            stream = stream.filter(a -> p.owned.equals(a.owned));
+        if (p.tino != null)
+            stream = stream.filter(a -> p.tino.equals(a.tino));
+        if (p.wire != null)
+            stream = stream.filter(a -> p.wire.equals(a.wire));
+
+        // ---- Year filter ----
+        if (p.releaseYear != null)
+            stream = stream.filter(a -> p.releaseYear.equals(a.releaseYear));
+
+        // ---- Date range filters ----
+        if (p.releaseDateFrom != null) {
+            LocalDate from = LocalDate.parse(p.releaseDateFrom);
+            stream = stream.filter(a -> a.releaseDate != null &&
+                    !LocalDate.parse(a.releaseDate).isBefore(from));
+        }
+        if (p.releaseDateTo != null) {
+            LocalDate to = LocalDate.parse(p.releaseDateTo);
+            stream = stream.filter(a -> a.releaseDate != null &&
+                    !LocalDate.parse(a.releaseDate).isAfter(to));
+        }
+        if (p.addedDateFrom != null) {
+            LocalDate from = LocalDate.parse(p.addedDateFrom);
+            stream = stream.filter(a -> a.addedDate != null &&
+                    !LocalDate.parse(a.addedDate).isBefore(from));
+        }
+        if (p.addedDateTo != null) {
+            LocalDate to = LocalDate.parse(p.addedDateTo);
+            stream = stream.filter(a -> a.addedDate != null &&
+                    !LocalDate.parse(a.addedDate).isAfter(to));
+        }
+
+        // ---- Rating filters (exact value takes precedence over range) ----
+        if (p.rating != null) {
+            stream = stream.filter(a -> p.rating.equals(a.rating));
+        } else {
+            if (p.ratingMin != null)
+                stream = stream.filter(a -> a.rating != null && a.rating >= p.ratingMin);
+            if (p.ratingMax != null)
+                stream = stream.filter(a -> a.rating != null && a.rating <= p.ratingMax);
+        }
+
+        if (p.mbRating != null) {
+            stream = stream.filter(a -> p.mbRating.equals(a.mbRating));
+        } else {
+            if (p.mbRatingMin != null)
+                stream = stream.filter(a -> a.mbRating != null && a.mbRating >= p.mbRatingMin);
+            if (p.mbRatingMax != null)
+                stream = stream.filter(a -> a.mbRating != null && a.mbRating <= p.mbRatingMax);
+        }
+
+        // ---- Sorting ----
+        if (p.sortBy != null) {
+            Comparator<Album> comparator = buildComparator(p.sortBy);
+            if (comparator != null) {
+                if ("desc".equalsIgnoreCase(p.sortDir)) {
+                    comparator = comparator.reversed();
+                }
+                stream = stream.sorted(comparator);
+            }
+        }
+
+        // ---- Collect then paginate ----
+        List<Album> filtered = stream.toList();
+        long total = filtered.size();
+
+        int fromIndex = Math.min(p.page * p.size, (int) total);
+        int toIndex   = Math.min(fromIndex + p.size, (int) total);
+        List<Album> page = filtered.subList(fromIndex, toIndex);
+
+        return new PagedResponse<>(page, p.page, p.size, total);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private static boolean containsIgnoreCase(String value, String query) {
+        if (value == null) return false;
+        return value.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT));
+    }
+
+    private static Comparator<Album> buildComparator(String sortBy) {
+        return switch (sortBy) {
+            case "artist"       -> Comparator.comparing(a -> nullSafe(a.artist));
+            case "albumArtist"  -> Comparator.comparing(a -> firstOf(a.albumArtist));
+            case "title"        -> Comparator.comparing(a -> nullSafe(a.title));
+            case "releaseYear"  -> Comparator.comparing(a -> nullSafeInt(a.releaseYear));
+            case "releaseDate"  -> Comparator.comparing(a -> nullSafe(a.releaseDate));
+            case "addedDate"    -> Comparator.comparing(a -> nullSafe(a.addedDate));
+            case "country"      -> Comparator.comparing(a -> nullSafe(a.country));
+            case "city"         -> Comparator.comparing(a -> nullSafe(a.city));
+            case "rating"       -> Comparator.comparing(a -> nullSafeDouble(a.rating));
+            case "mbRating"     -> Comparator.comparing(a -> nullSafeDouble(a.mbRating));
+            default             -> null;
+        };
+    }
+
+    private static String nullSafe(String s)     { return s != null ? s : ""; }
+    private static int    nullSafeInt(Integer i)  { return i != null ? i : 0; }
+    private static double nullSafeDouble(Double d){ return d != null ? d : 0.0; }
+    private static String firstOf(List<String> l) { return (l != null && !l.isEmpty()) ? l.get(0) : ""; }
+}
