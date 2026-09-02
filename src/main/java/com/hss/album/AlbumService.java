@@ -63,6 +63,9 @@ public class AlbumService {
                 // --- Always hide hidden albums ---
                 .filter(a -> !Boolean.TRUE.equals(a.hidden));
 
+        // ---- Global Search Filter ----
+        if (p.search != null)
+            stream = stream.filter(a -> matchesSearch(a, p.search));
         // ---- String filters (contains, case-insensitive) ----
         if (p.artist != null)
             stream = stream.filter(a -> containsIgnoreCase(a.artist, p.artist));
@@ -100,6 +103,8 @@ public class AlbumService {
             stream = stream.filter(a -> p.wire.equals(a.wire));
         if (p.wishlist != null)
             stream = stream.filter(a -> p.wishlist.equals(a.wishlist));
+        if (p.hasVideo != null)
+            stream = stream.filter(a -> a.video != null);
 
         // ---- Year filter ----
         if (p.releaseYear != null)
@@ -156,6 +161,8 @@ public class AlbumService {
         int toIndex   = Math.min(fromIndex + p.size, (int) total);
         List<Album> page = filtered.subList(fromIndex, toIndex);
 
+        System.out.println("Records page: " + p.page + " of the year: " + p.releaseYear + " search: " + p.search);
+
         return new PagedResponse<>(page, p.page, p.size, total);
     }
 
@@ -187,4 +194,40 @@ public class AlbumService {
     private static int    nullSafeInt(Integer i)  { return i != null ? i : 0; }
     private static double nullSafeDouble(Double d){ return d != null ? d : 0.0; }
     private static String firstOf(List<String> l) { return (l != null && !l.isEmpty()) ? l.get(0) : ""; }
+
+    private boolean matchesSearch(Album a, String search) {
+        if (search == null || search.isBlank()) {
+            return true;
+        }
+
+        // Verkettung aller zu durchsuchenden Feldern (Strings & Sammlungen)
+        StringBuilder sb = new StringBuilder();
+
+        if (a.artist != null) sb.append(a.artist).append(" ");
+        if (a.title != null) sb.append(a.title).append(" ");
+        if (a.country != null) sb.append(a.country).append(" ");
+        if (a.city != null) sb.append(a.city).append(" ");
+
+        if (a.albumArtist != null && !a.albumArtist.isEmpty()) {
+            sb.append(String.join(" ", a.albumArtist)).append(" ");
+        }
+        if (a.genre != null && !a.genre.isEmpty()) {
+            sb.append(String.join(" ", a.genre)).append(" ");
+        }
+        if (a.style != null && !a.style.isEmpty()) {
+            sb.append(String.join(" ", a.style)).append(" ");
+        }
+
+        String content = sb.toString().toLowerCase();
+
+        // Jedes eingegebene Wort muss an irgendeiner Stelle vorkommen (AND-Verknüpfung)
+        String[] keywords = search.trim().toLowerCase().split("\\s+");
+        for (String keyword : keywords) {
+            if (!content.contains(keyword)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

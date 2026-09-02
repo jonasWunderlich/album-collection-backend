@@ -42,6 +42,9 @@ public class AlbumResource {
             @QueryParam("sortDir") @DefaultValue("asc") String sortDir,
 
             // ---- String filters ----
+            @Parameter(description = "Filter by text string (contains, case-insensitive)")
+            @QueryParam("search") String search,
+
             @Parameter(description = "Filter by artist name (contains, case-insensitive)")
             @QueryParam("artist") String artist,
 
@@ -66,9 +69,6 @@ public class AlbumResource {
             @Parameter(description = "Filter by publisher (contains in array, case-insensitive)")
             @QueryParam("publisher") String publisher,
 
-            @Parameter(description = "Filter by video URL (contains, case-insensitive)")
-            @QueryParam("videoUrl") String videoUrl,
-
             // ---- Boolean filters ----
             @Parameter(description = "Filter by reissue flag")
             @QueryParam("reissue") Boolean reissue,
@@ -90,6 +90,9 @@ public class AlbumResource {
 
             @Parameter(description = "Filter by wishlist flag")
             @QueryParam("wishlist") Boolean wishlist,
+
+            @Parameter(description = "Filter by hasVideo flag")
+            @QueryParam("hasVideo") Boolean hasVideo,
 
             // ---- Year filter ----
             @Parameter(description = "Filter by exact release year")
@@ -123,6 +126,7 @@ public class AlbumResource {
         params.size = size;
         params.sortBy = sortBy;
         params.sortDir = sortDir;
+        params.search = search;
         params.artist = artist;
         params.albumArtist = albumArtist;
         params.title = title;
@@ -131,7 +135,7 @@ public class AlbumResource {
         params.genre = genre;
         params.style = style;
         params.publisher = publisher;
-        params.videoUrl = videoUrl;
+        params.hasVideo = hasVideo;
         params.reissue = reissue;
         params.fan = fan;
         params.favorite = favorite;

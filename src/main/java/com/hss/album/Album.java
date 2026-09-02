@@ -32,9 +32,5 @@ public class Album {
     public Boolean wire;
     public Boolean wishlist;
     public Boolean hidden;
-    public String videoUrl;
-    public String wikiUrl;
-    public String discogsUrl;
-    public String bandcampUrl;
-    public String rymUrl;
+    public String video;
 }

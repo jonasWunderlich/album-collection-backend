@@ -15,6 +15,7 @@ public class AlbumFilterParams {
     public String sortDir = "asc";
 
     // ---- String filters ----
+    public String search;  // Volltextsuche: artist, albumArtist, title, genre, style, city, country, publisher
     public String artist;
     public String albumArtist;
     public String title;
@@ -23,9 +24,7 @@ public class AlbumFilterParams {
     public String genre;
     public String style;
     public String publisher;
-    public String videoUrl;
-    public String search;  // Volltextsuche: artist, albumArtist, title, genre, style, city, country, publisher
-
+    
     // ---- Boolean filters ----
     public Boolean reissue;
     public Boolean fan;
@@ -34,6 +33,7 @@ public class AlbumFilterParams {
     public Boolean tino;
     public Boolean wire;
     public Boolean wishlist;
+    public Boolean hasVideo;
 
     // ---- Year filter ----
     public Integer releaseYear;
