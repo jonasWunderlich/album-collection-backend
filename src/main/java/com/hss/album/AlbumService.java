@@ -70,8 +70,8 @@ public class AlbumService {
         if (p.artist != null)
             stream = stream.filter(a -> containsIgnoreCase(a.artist, p.artist));
         if (p.albumArtist != null)
-            stream = stream.filter(a -> a.albumArtist != null &&
-                    a.albumArtist.stream().anyMatch(v -> containsIgnoreCase(v, p.albumArtist)));
+            stream = stream.filter(a -> a.albumArtist != null && 
+                a.albumArtist.stream().anyMatch(v -> v != null && v.equalsIgnoreCase(p.albumArtist.trim())));
         if (p.title != null)
             stream = stream.filter(a -> containsIgnoreCase(a.title, p.title));
         if (p.country != null)
