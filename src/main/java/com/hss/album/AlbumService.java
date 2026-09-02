@@ -66,6 +66,7 @@ public class AlbumService {
         // ---- Global Search Filter ----
         if (p.search != null)
             stream = stream.filter(a -> matchesSearch(a, p.search));
+        
         // ---- String filters (contains, case-insensitive) ----
         if (p.artist != null)
             stream = stream.filter(a -> containsIgnoreCase(a.artist, p.artist));

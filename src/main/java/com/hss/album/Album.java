@@ -2,6 +2,7 @@ package com.hss.album;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -33,4 +34,9 @@ public class Album {
     public Boolean wishlist;
     public Boolean hidden;
     public String video;
+
+    @JsonProperty("coverUrl")
+    public String getCoverUrl() {
+        return CoverSlugUtil.formatArtistAndAlbumSlug(this.releaseYear, this.albumArtist.get(0), this.title);
+    }
 }
