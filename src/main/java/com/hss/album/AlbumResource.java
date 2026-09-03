@@ -98,6 +98,9 @@ public class AlbumResource {
             @Parameter(description = "Filter by exact release year")
             @QueryParam("releaseYear") Integer releaseYear,
 
+            @Parameter(description = "Filter by decade of years")
+            @QueryParam("decade") Integer decade,
+
             // ---- Date range filters ----
             @Parameter(description = "Filter release date from (ISO yyyy-MM-dd, inclusive)")
             @QueryParam("releaseDateFrom") String releaseDateFrom,
@@ -143,6 +146,7 @@ public class AlbumResource {
         params.tino = tino;
         params.wire = wire;
         params.wishlist = wishlist;
+        params.decade = decade;
         params.releaseYear = releaseYear;
         params.releaseDateFrom = releaseDateFrom;
         params.releaseDateTo = releaseDateTo;

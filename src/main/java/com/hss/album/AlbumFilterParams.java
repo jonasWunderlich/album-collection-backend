@@ -37,6 +37,7 @@ public class AlbumFilterParams {
 
     // ---- Year filter ----
     public Integer releaseYear;
+    public Integer decade;
 
     // ---- Date range filters (ISO-8601: yyyy-MM-dd) ----
     public String releaseDateFrom;

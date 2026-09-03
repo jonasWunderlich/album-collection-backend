@@ -111,6 +111,11 @@ public class AlbumService {
         if (p.releaseYear != null)
             stream = stream.filter(a -> p.releaseYear.equals(a.releaseYear));
 
+        // ---- Year filter ----
+        if (p.decade != null) {
+            stream = stream.filter(a -> a.releaseYear != null && p.decade.equals((a.releaseYear / 10) * 10));
+}
+
         // ---- Date range filters ----
         if (p.releaseDateFrom != null) {
             LocalDate from = LocalDate.parse(p.releaseDateFrom);
