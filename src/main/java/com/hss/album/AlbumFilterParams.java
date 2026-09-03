@@ -24,7 +24,7 @@ public class AlbumFilterParams {
     public String genre;
     public String style;
     public String publisher;
-    
+
     // ---- Boolean filters ----
     public Boolean reissue;
     public Boolean fan;

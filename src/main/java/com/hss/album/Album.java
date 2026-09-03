@@ -33,10 +33,11 @@ public class Album {
     public Boolean wire;
     public Boolean wishlist;
     public Boolean hidden;
-    public String video;
-
-    @JsonProperty("coverUrl")
-    public String getCoverUrl() {
-        return CoverSlugUtil.formatArtistAndAlbumSlug(this.releaseYear, this.albumArtist.get(0), this.title);
-    }
+    
+    public String dateFirstRelease;
+    public String urlAlbum;
+    public String urlArtist;
+    public String urlCover;
+    public String urlVideo;
+    public String urlWikipedia;
 }

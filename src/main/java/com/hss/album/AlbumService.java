@@ -66,7 +66,7 @@ public class AlbumService {
         // ---- Global Search Filter ----
         if (p.search != null)
             stream = stream.filter(a -> matchesSearch(a, p.search));
-        
+
         // ---- String filters (contains, case-insensitive) ----
         if (p.artist != null)
             stream = stream.filter(a -> containsIgnoreCase(a.artist, p.artist));
@@ -105,7 +105,7 @@ public class AlbumService {
         if (p.wishlist != null)
             stream = stream.filter(a -> p.wishlist.equals(a.wishlist));
         if (p.hasVideo != null)
-            stream = stream.filter(a -> a.video != null);
+            stream = stream.filter(a -> a.urlVideo != null);
 
         // ---- Year filter ----
         if (p.releaseYear != null)
@@ -161,8 +161,6 @@ public class AlbumService {
         int fromIndex = Math.min(p.page * p.size, (int) total);
         int toIndex   = Math.min(fromIndex + p.size, (int) total);
         List<Album> page = filtered.subList(fromIndex, toIndex);
-
-        System.out.println("Records page: " + p.page + " of the year: " + p.releaseYear + " search: " + p.search);
 
         return new PagedResponse<>(page, p.page, p.size, total);
     }
