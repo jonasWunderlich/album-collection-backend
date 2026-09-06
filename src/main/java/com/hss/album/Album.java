@@ -19,6 +19,7 @@ public class Album {
     public Integer releaseYear;
     public String releaseDate;
     public String addedDate;
+    public String lastPlayedDate;
     public List<String> publisher;
     public List<String> genre;
     public List<String> style;

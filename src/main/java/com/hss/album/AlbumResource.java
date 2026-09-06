@@ -35,7 +35,7 @@ public class AlbumResource {
             @QueryParam("size") @DefaultValue("20") int size,
 
             // ---- Sorting ----
-            @Parameter(description = "Sort field: artist | albumArtist | title | releaseYear | releaseDate | addedDate | country | city | rating")
+            @Parameter(description = "Sort field: artist | albumArtist | title | releaseYear | releaseDate | addedDate | lastPlayedDate | country | city | rating")
             @QueryParam("sortBy") String sortBy,
 
             @Parameter(description = "Sort direction: asc | desc (default: asc)")
@@ -113,6 +113,12 @@ public class AlbumResource {
 
             @Parameter(description = "Filter added date to (ISO yyyy-MM-dd, inclusive)")
             @QueryParam("addedDateTo") String addedDateTo,
+
+            @Parameter(description = "Filter last played date from (ISO yyyy-MM-dd, inclusive)")
+            @QueryParam("lastPlayedDateFrom") String lastPlayedDateFrom,
+
+            @Parameter(description = "Filter last played date to (ISO yyyy-MM-dd, inclusive)")
+            @QueryParam("lastPlayedDateTo") String lastPlayedDateTo,
 
             // ---- Rating filters ----
             @Parameter(description = "Filter by exact rating (takes precedence over ratingMin/Max)")

@@ -44,6 +44,8 @@ public class AlbumFilterParams {
     public String releaseDateTo;
     public String addedDateFrom;
     public String addedDateTo;
+    public String lastPlayedDateFrom;
+    public String lastPlayedDateTo;
 
     // ---- Rating filters ----
     public Double rating;

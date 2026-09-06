@@ -75,4 +75,9 @@ Der Rückgabewert hat folgende Struktur.
 
 Mehr informationen zu filtermöglichkeiten sind in der Swagger umgebung zu finden
 
-http://localhost:8080/swagger-ui/
+    http://localhost:8080/swagger-ui/
+
+
+## Run Server
+
+    /opt/homebrew/bin/mvn quarkus:dev -s .mvn-settings.xml -Dquarkus.analytics.disabled=true

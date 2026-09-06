@@ -137,6 +137,16 @@ public class AlbumService {
             stream = stream.filter(a -> a.addedDate != null &&
                     !LocalDateTime.parse(a.addedDate, TIMESTAMP_FORMATTER).toLocalDate().isAfter(to));
         }
+        if (p.lastPlayedDateFrom != null) {
+            LocalDate from = LocalDate.parse(p.lastPlayedDateFrom);
+            stream = stream.filter(a -> a.lastPlayedDate != null &&
+                    !LocalDateTime.parse(a.lastPlayedDate, TIMESTAMP_FORMATTER).toLocalDate().isBefore(from));
+        }
+        if (p.lastPlayedDateTo != null) {
+            LocalDate to = LocalDate.parse(p.lastPlayedDateTo);
+            stream = stream.filter(a -> a.lastPlayedDate != null &&
+                    !LocalDateTime.parse(a.lastPlayedDate, TIMESTAMP_FORMATTER).toLocalDate().isAfter(to));
+        }
 
         // ---- Rating filters (exact value takes precedence over range) ----
         if (p.rating != null) {
@@ -181,16 +191,17 @@ public class AlbumService {
 
     private static Comparator<Album> buildComparator(String sortBy) {
         return switch (sortBy) {
-            case "artist"       -> Comparator.comparing(a -> nullSafe(a.artist));
-            case "albumArtist"  -> Comparator.comparing(a -> firstOf(a.albumArtist));
-            case "title"        -> Comparator.comparing(a -> nullSafe(a.title));
-            case "releaseYear"  -> Comparator.comparing(a -> nullSafeInt(a.releaseYear));
-            case "releaseDate"  -> Comparator.comparing(a -> nullSafe(a.releaseDate));
-            case "addedDate"    -> Comparator.comparing(a -> nullSafe(a.addedDate));
-            case "country"      -> Comparator.comparing(a -> nullSafe(a.country));
-            case "city"         -> Comparator.comparing(a -> nullSafe(a.city));
-            case "rating"       -> Comparator.comparing(a -> nullSafeDouble(a.rating));
-            default             -> null;
+            case "artist"         -> Comparator.comparing(a -> nullSafe(a.artist));
+            case "albumArtist"    -> Comparator.comparing(a -> firstOf(a.albumArtist));
+            case "title"          -> Comparator.comparing(a -> nullSafe(a.title));
+            case "releaseYear"    -> Comparator.comparing(a -> nullSafeInt(a.releaseYear));
+            case "releaseDate"    -> Comparator.comparing(a -> nullSafe(a.releaseDate));
+            case "addedDate"      -> Comparator.comparing(a -> nullSafe(a.addedDate));
+            case "lastPlayedDate" -> Comparator.comparing(a -> nullSafe(a.lastPlayedDate));
+            case "country"        -> Comparator.comparing(a -> nullSafe(a.country));
+            case "city"           -> Comparator.comparing(a -> nullSafe(a.city));
+            case "rating"         -> Comparator.comparing(a -> nullSafeDouble(a.rating));
+            default               -> null;
         };
     }
 
