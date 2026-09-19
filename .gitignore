@@ -1,3 +1,4 @@
 src/main/resources/library.json
-src/main/resources/releaseYears.json
+src/main/resources/
+!src/main/resources/application.properties
 target/*
