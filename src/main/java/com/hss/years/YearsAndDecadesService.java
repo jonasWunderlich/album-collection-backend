@@ -1,6 +1,5 @@
 package com.hss.years;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,13 +12,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-
 /**
- ** Loads library.json on startup and provides filtering, sorting and pagination.
+ * Loads release years and decades and provides them for navigation.
  */
 @ApplicationScoped
 public class YearsAndDecadesService {
-    
+
     private final List<String> releaseYears;
     private final List<String> releaseDecades;
 
@@ -30,19 +28,36 @@ public class YearsAndDecadesService {
 
         try {
             YearsAndDecades loaded;
+
             if (externalYearsPath.isPresent() && !externalYearsPath.get().isBlank()) {
-                loaded = objectMapper.readValue(new File(externalYearsPath.get()), YearsAndDecades.class);
+                loaded = objectMapper.readValue(
+                        new File(externalYearsPath.get()),
+                        YearsAndDecades.class
+                );
             } else {
-                try (InputStream is = getClass().getClassLoader().getResourceAsStream("releaseYears.json")) {
+                try (InputStream is = getClass()
+                        .getClassLoader()
+                        .getResourceAsStream("releaseYears.json")) {
+
                     if (is == null) {
-                        throw new IllegalStateException("releaseYears.json not found on classpath. " +
-                                "Set 'releaseYears.json.path' in application.properties to point to the file.");
+                        throw new IllegalStateException(
+                                "releaseYears.json not found on classpath. " +
+                                "Set 'releaseYears.json.path' in application.properties to point to the file."
+                        );
                     }
+
                     loaded = objectMapper.readValue(is, YearsAndDecades.class);
                 }
             }
-            this.releaseYears = loaded.releaseYears() != null ? List.copyOf(loaded.releaseYears()) : Collections.emptyList();
-            this.releaseDecades = loaded.decades() != null ? List.copyOf(loaded.decades()) : Collections.emptyList();
+
+            this.releaseYears = loaded.releaseYears() != null
+                    ? List.copyOf(loaded.releaseYears()).reversed()
+                    : Collections.emptyList();
+
+            this.releaseDecades = loaded.decades() != null
+                    ? List.copyOf(loaded.decades()).reversed()
+                    : Collections.emptyList();
+
         } catch (IOException e) {
             throw new RuntimeException("Failed to load releaseYears.json", e);
         }
@@ -52,6 +67,9 @@ public class YearsAndDecadesService {
      * For the navigation get years and decades.
      */
     public YearsAndDecadesResponse getYearsAndDecades() {
-        return new YearsAndDecadesResponse(releaseYears, releaseDecades);
+        return new YearsAndDecadesResponse(
+                releaseYears,
+                releaseDecades
+        );
     }
 }
