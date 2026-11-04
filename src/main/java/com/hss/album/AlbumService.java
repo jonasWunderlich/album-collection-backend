@@ -231,6 +231,9 @@ public class AlbumService {
         if (a.albumArtist != null && !a.albumArtist.isEmpty()) {
             sb.append(String.join(" ", a.albumArtist)).append(" ");
         }
+        if (a.publisher != null && !a.publisher.isEmpty()) {
+            sb.append(String.join(" ", a.publisher)).append(" ");
+        }
         if (a.genre != null && !a.genre.isEmpty()) {
             sb.append(String.join(" ", a.genre)).append(" ");
         }
